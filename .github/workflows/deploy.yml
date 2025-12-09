@@ -35,8 +35,9 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: 2222
-          source: "./*"
+          source: "."
           target: ${{ secrets.SERVER_PATH }}
+          strip_components: 0
 
       - name: Run commands after deployment (optional)
         uses: appleboy/ssh-action@v0.1.7
