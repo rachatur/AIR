@@ -1,0 +1,48 @@
+name: Generate Index & Deploy
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # ------------------------
+      # Step 1: Generate index.html
+      # ------------------------
+      - name: Generate index.html
+        run: |
+          echo "<h1>Repository Index</h1>" > index.html
+          echo "<ul>" >> index.html
+          find . -type f ! -path "./.git/*" ! -name "index.html" | while read FILE ; do
+            CLEAN="${FILE#./}"
+            echo "<li><a href=\"$CLEAN\">$CLEAN</a></li>" >> index.html
+          done
+          echo "</ul>" >> index.html
+
+      # ------------------------
+      # Step 2: Deploy to Linux Server
+      # ------------------------
+      - name: Copy files to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          source: "./*"
+          target: ${{ secrets.SERVER_PATH }}
+
+      - name: Run commands after deployment (optional)
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            cd ${{ secrets.SERVER_PATH }}
+            echo "Deployment finished!"
