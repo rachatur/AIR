@@ -1,0 +1,29 @@
+name: Generate Index
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Generate index.html
+        run: |
+          echo "<h1>Repository Index</h1>" > index.html
+          echo "<ul>" >> index.html
+          find . -type f ! -path "./.git/*" ! -name "index.html" | while read FILE ; do
+            CLEAN="${FILE#./}"
+            echo "<li><a href=\"$CLEAN\">$CLEAN</a></li>" >> index.html
+          done
+          echo "</ul>" >> index.html
+
+      - name: Commit changes
+        run: |
+          git config user.name "GitHub Action"
+          git config user.email "action@github.com"
+          git add index.html
+          git commit -m "Update index" || echo "No changes"
+          git push
